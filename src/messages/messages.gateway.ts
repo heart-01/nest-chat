@@ -34,17 +34,23 @@ export class MessagesGateway
   }
 
   handleConnection(client: Socket, ...args: any[]) {
-    console.log('User connected');
+    console.log(`User ${client.id} connected`);
   }
 
   handleDisconnect(client: Socket) {
-    console.log('User disconnected');
+    console.log(`User ${client.id} disconnected`);
   }
 
   @SubscribeMessage('createMessage')
-  async handleEventCreate(@MessageBody() createMessageDto: CreateMessageDto) {
-    const message = await this.messagesService.create(createMessageDto);
-    this.server.emit('message', message); // Emit the message to all clients
+  async handleEventCreate(
+    @MessageBody() createMessageDto: CreateMessageDto,
+    @ConnectedSocket() client: Socket,
+  ) {
+    const message = await this.messagesService.create(
+      createMessageDto,
+      client.id,
+    );
+    this.server.emit('message', message); // call the event 'message' and send the message on the all clients 
     return message;
   }
 
@@ -67,6 +73,6 @@ export class MessagesGateway
     @ConnectedSocket() client: Socket,
   ) {
     const name = this.messagesService.getClientName(client.id);
-    client.broadcast.emit('typeing', { name, isTyping });
+    client.broadcast.emit('typeing', { name, isTyping }); // call the event 'typeing' and send the message on the client except the sender
   }
 }
