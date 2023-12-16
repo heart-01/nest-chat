@@ -14,7 +14,13 @@ import { CreateMessageDto } from './dto/create-message.dto';
 import { Message } from './entities/message.entity';
 import { Server, Socket } from 'socket.io';
 
-@WebSocketGateway()
+@WebSocketGateway({
+  cors: {
+    origin: ['http://localhost:3000'],
+    credentials: true,
+  },
+  transports: ['websocket', 'polling'],
+})
 export class MessagesGateway
   implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit
 {
@@ -23,16 +29,16 @@ export class MessagesGateway
   @WebSocketServer()
   server: Server;
 
+  afterInit(server: Socket) {
+    console.log('Socket is live');
+  }
+
   handleConnection(client: Socket, ...args: any[]) {
     console.log('User connected');
   }
 
   handleDisconnect(client: Socket) {
     console.log('User disconnected');
-  }
-
-  afterInit(server: Socket) {
-    console.log('Socket is live');
   }
 
   @SubscribeMessage('createMessage')
